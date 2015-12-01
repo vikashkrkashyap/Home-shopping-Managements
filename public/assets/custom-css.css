@@ -1,0 +1,95 @@
+body{
+}
+input[name='item_name']
+{
+    text-transform: capitalize;
+}
+.shopped
+{
+    position: absolute;
+    top: 15%;
+    left: 32%;
+    width: 380px;
+    color: white;
+    padding:2px 4px;
+    border:2px solid white;
+    border-radius:4px;
+    background:rgba(0,0,0,0.7) ;
+}
+.shopped label
+{
+    width:50px;
+    margin:5px;
+    padding:2px 5px;
+    float: left;
+}
+.shopped input{
+    width: 250px;
+    height:40px;
+    padding:2px 5px;
+    margin:5px;
+    flaot:left;
+    border-radius: 5px;
+    color: #000;
+}
+.item{
+    font-size:20px;
+    font-weight: 700;
+    text-transform: capitalize;
+}
+
+a.boxclose{
+    float:right;
+    margin-top:-35px;
+    margin-right:-20px;
+    cursor:pointer;
+    color: #fff;
+    border: 1px solid #AEAEAE;
+    border-radius: 30px;
+    background: #605F61;
+    font-size: 31px;
+    font-weight: bold;
+    display: inline-block;
+    line-height: 0px;
+    padding: 11px 3px;
+
+}
+.boxclose:before {
+    content: "x";
+    color: red;
+
+}
+.menu
+{
+    background: black;
+    font-size:17px;
+    text-align: center;
+    font-weight: 500;
+}
+.menu a
+{
+    text-decoration: none;
+    color:#fff;
+}
+.menu a:hover
+{
+    color:white;
+}
+.select
+{
+    text-decoration: underline;
+}
+#purchase-data input
+{
+    text-transform: capitalize;
+}
+#item-list h1,#purchased-list h1
+{
+    text-transform: capitalize;
+}
+.custom-button-width
+{
+    width:180px;
+    height:50px;
+    font-size:25px;
+}
