@@ -15,11 +15,9 @@ class CreateItemsTable extends Migration
         Schema::create('items',function(Blueprint $table){
             $table->increments('id');
             $table->string('item_name');
-            $table->integer('user_id')->unsigned();
-            $table->boolean('is_purchase')->default(false);
             $table->timestamps();
 
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+
 
         });
     }

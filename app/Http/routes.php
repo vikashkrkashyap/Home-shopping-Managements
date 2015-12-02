@@ -27,7 +27,7 @@ Route::post('register', 'Auth\AuthController@postRegister');
 
 
 Route::get('home','HomeController@index');
-Route::get('dashboard', 'UserController@index');
+//Route::get('dashboard', 'UserController@index');
 Route::post('store-items','UserController@store');
 Route::get('items','UserController@items');
 Route::post('post-data','UserController@postStorePrice');

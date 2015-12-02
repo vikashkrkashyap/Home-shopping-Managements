@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Item;
 use App\lol;
+use App\pivot_user_item;
 use App\Store_model;
 use App\Stores_item;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Input;
@@ -53,49 +55,67 @@ class UserController extends Controller
 
         $item = $request->input('item_name');
 
-        if(Item::where('item_name',$item)->count()){
-            if(Item::where('item_name',$item)->where('user_id',Auth::user()->id)->count()){
+        if(!Item::where('item_name',$item)->count()){
+
+            //naya item insert hua hai
+            $items = new Item;
+            $item_id = $items->insertGetId([
+                'item_name' => $item,
+                'created_at'=>Carbon::now()
+            ]);
+
+            $data = new pivot_user_item;
+            $data->user_id = Auth::user()->id;
+            $data->item_id = $item_id;
+            $data->save();
+            $request->session()->flash('status', 'Item added.Add another item!');
+        }
+
+        else{
+            $item_id = Item::where('item_name',$item)->value('id');
+            if(pivot_user_item::where('item_id',$item_id)->where('user_id',Auth::user()->id)->count()){
                 //item agar user ka hoga to added
                 $request->session()->flash('list', 'you have already added this item!');
             }else{
                 //item naya user add kia hai
+                $data = new pivot_user_item;
+                $data->user_id = Auth::user()->id;
+                $data->item_id = $item_id;
+                $data->save();
                 $request->session()->flash('status', 'Item added.Add another item!');
             }
-        }
-        else{
-            //naya item insert hua hai
-            $items = new Item;
-            $items->item_name = $item;
-            $items->user_id = Auth::user()->id;
-            $items->save();
-            $request->session()->flash('status', 'Item added.Add another item!');
+
+
+
         }
 
-        return redirect('dashboard');
+        return redirect('items');
     }
 
     public function items()
     {
 
+
         $title ='Items';
 
-        //item list created by the user
-        $items = Item::select('id','item_name',DB::raw('date(created_at) as date'),'created_at')->orderBy('created_at','desc')
-           ->where('is_purchase',0)->where('user_id',Auth::user()->id)->get();
+        $items = pivot_user_item::select('item_id',DB::raw('(select(item_name) from items where id = item_id) as item_name'),
+            DB::raw('(select date(created_at) from items where id = item_id) as date'))->orderBy('date','desc')
+            ->where('pivot_user_item.is_purchase',0)->where('pivot_user_item.user_id',Auth()->user()->id)->get();
 
         //item list purchased by the user
-        $purchased_items = Item::select('items.id','items.item_name',DB::raw('date(items.updated_at) as date'),'items.created_at',
-                  DB::raw('(select (item_price) from stores_items where item_id = items.id) as price'),
-                  DB::raw('(select(stores.store_name) from stores where stores.id = stores_items.store_id) as store'))
-                  ->join('stores_items','items.id','=','stores_items.item_id')
-                  ->orderBy('created_at','desc')
-                  ->where('items.is_purchase',1)->where('stores_items.user_id',Auth()->user()->id)->get();
-
+        $purchased_items = pivot_user_item::select('pivot_user_item.item_id',DB::raw('(select(item_name) from items where items.id =
+         pivot_user_item.item_id) as item_name'),DB::raw('date(pivot_user_item.updated_at) as date'),
+            //DB::raw('(select (stores_items.item_price) from stores_items where stores_items.item_id = pivot_user_item.item_id) as price'),
+                 DB::raw('(select(stores.store_name) from stores where stores.id = stores_items.store_id) as store'))
+                  ->join('stores_items','pivot_user_item.item_id','=','stores_items.item_id')
+                  ->groupBy('item_name')->where('stores_items.user_id',Auth::user()->id)
+                  ->where('pivot_user_item.is_purchase',1)->get();
 
        //top 3 trending shops by all users over the website
         $trends = Stores_item::select(DB::raw('(select(store_name) from stores where id = store_id) as store'),
             DB::raw('sum(item_price) as price'),DB::raw('count(store_id) as visit'))
-            ->groupBy('store_id')->orderBy('price','desc')->take(3)->get();
+            ->groupBy('store_id')->orderBy('price','desc')->where('user_id',Auth::user()->id)->take(3)->get();
+
 
 
         return view('list',compact('title','items','trends','purchased_items'));
@@ -147,7 +167,7 @@ class UserController extends Controller
         $data->save();
 
        //updating the items as purchased
-        Item::where('id',$item_id)->update(['is_purchase'=>true]);
+        pivot_user_item::where('item_id',$item_id)->update(['is_purchase'=>true]);
         return redirect()->back();
     }
 
